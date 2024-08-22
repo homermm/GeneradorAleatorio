@@ -4,6 +4,9 @@
 #include <vector>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <ctime>
+#include <cstdlib>
+#include <sstream>
 
 using namespace std;
 
@@ -14,6 +17,54 @@ private:
     int addrlen;
     vector<SOCKET> clients;
 
+    //! Funciones solicitadas
+
+    // Función para generar nombres de usuario
+    void generateUsername(int length, string &username) {
+        if (length < 5 || length > 15) {
+            username = "Error: Longitud de nombre de usuario inválida.";
+            return;
+        }
+
+        const string vowels = "aeiou";
+        const string consonants = "bcdfghjklmnpqrstvwxyz";
+        int vowel_count = vowels.size();
+        int consonant_count = consonants.size();
+
+        srand(time(nullptr));
+        bool startWithVowel = rand() % 2;
+        username.clear();
+
+        for (int i = 0; i < length; ++i) {
+            if (startWithVowel) {
+                username += vowels[rand() % vowel_count];
+                startWithVowel = false; // Bandera para alternar
+            } else {
+                username += consonants[rand() % consonant_count];
+                startWithVowel = true;
+            }
+        }
+    }
+
+    // Función para generar contraseñas
+    void generatePassword(int length, string &password) {
+        if (length < 8 || length > 50) {
+            password = "Error: Longitud de contraseña inválida.";
+            return;
+        }
+
+        const string alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        int alphanum_count = alphanum.size();
+
+        srand(time(nullptr));
+        password.clear();
+
+        for (int i = 0; i < length; ++i) {
+            password += alphanum[rand() % alphanum_count];
+        }
+    }
+
+//! Funciones primitivas
 public:
     Server(int port) {
         WSADATA wsaData;
@@ -61,17 +112,31 @@ public:
 
     void handleClient(SOCKET client_socket) {
         char buffer[1024] = {0};
+        string response;
         while (true) {
             int valread = recv(client_socket, buffer, 1024, 0);
             if (valread > 0) {
                 buffer[valread] = '\0';
-                cout << "Cliente: " << buffer << endl;
-                broadcast(buffer, client_socket);
+                string request(buffer);
+                string type;
+                int length;
+                istringstream iss(request);
+                iss >> type >> length;
+
+                if (type == "username") { // Desde el cliente al usar esta opcion se manda el mensaje iniciando con "username" y luego el tamaño
+                    generateUsername(length, response);
+                } else if (type == "password") {
+                    generatePassword(length, response); // La misma logica que en username
+                } else {
+                    response = "Error: Tipo de solicitud inválido.";
+                }
+
+                send(client_socket, response.c_str(), response.length(), 0);
             } else if (valread == 0) {
                 cout << "Cliente desconectado" << endl;
                 break;
             } else {
-                cerr << "Error al recibir mensaje: " << WSAGetLastError() << endl;
+                cerr << "Error al recibir mensaje: " << WSAGetLastError() << endl; //! Fixear cierre de cliente
                 break;
             }
         }

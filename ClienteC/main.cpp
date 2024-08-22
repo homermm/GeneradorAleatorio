@@ -27,7 +27,7 @@ public:
         serv_addr.sin_port = htons(port);
         serv_addr.sin_addr.s_addr = inet_addr(ip.c_str());
         if (serv_addr.sin_addr.s_addr == INADDR_NONE) {
-            cerr << "Dirección IP no válida" << endl;
+            cerr << "Direccion IP no válida" << endl;
             WSACleanup();
             exit(EXIT_FAILURE);
         }
@@ -44,16 +44,44 @@ public:
     void start() {
         thread(&Client::receiveMessages, this).detach();
         string message;
-        while (true) {
-            getline(cin, message);
-            if (message.empty()) {
-                continue;
-            }
-            int sent = send(sock, message.c_str(), message.length(), 0);
-            if (sent == SOCKET_ERROR) {
-                cerr << "Error al enviar mensaje: " << WSAGetLastError() << endl;
+        while (true) { // Menu con opciones fijo
+            cout << "\nSeleccione una opcion:" << endl;
+            cout << "1. Generar nombre de usuario" << endl;
+            cout << "2. Generar contrasena" << endl;
+            cout << "0. Salir\n" << endl;
+            int option;
+            cin >> option;
+            cin.ignore(); // Limpiar el buffer de entrada
+
+            if (option == 0) {
                 break;
             }
+
+            int length;
+            if (option == 1) {
+                cout << "Ingrese la longitud del nombre de usuario (5-15): ";
+                cin >> length;
+                cin.ignore(); // Limpiar el buffer de entrada
+                if (length < 5 || length > 15) {
+                    cout << "Longitud inválida" << endl;
+                    continue;
+                }
+                message = "username " + to_string(length);
+            } else if (option == 2) {
+                cout << "Ingrese la longitud de la contraseña (8-50): ";
+                cin >> length;
+                cin.ignore(); // Limpiar el buffer de entrada
+                if (length < 8 || length > 50) {
+                    cout << "Longitud inválida" << endl;
+                    continue;
+                }
+                message = "password " + to_string(length);
+            } else {
+                cout << "Opcion inválida" << endl;
+                continue;
+            }
+
+            send(sock, message.c_str(), message.length(), 0);
         }
         closesocket(sock);
         WSACleanup();
@@ -67,7 +95,7 @@ public:
                 buffer[valread] = '\0';
                 cout << "Servidor: " << buffer << endl;
             } else if (valread == 0) {
-                cout << "Conexión cerrada por el servidor" << endl;
+                cout << "Conexion cerrada por el servidor" << endl;
                 break;
             } else {
                 cerr << "Error al recibir mensaje: " << WSAGetLastError() << endl;
