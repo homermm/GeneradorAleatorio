@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1724296859 source:c:\users\homer\desktop\facu\2do cuatri\sistemas distribuidos\generadoraleatorioenc\clientec\main.cpp
+	<iostream>
+	<string>
+	<thread>
+	<winsock2.h>
+	<ws2tcpip.h>
+

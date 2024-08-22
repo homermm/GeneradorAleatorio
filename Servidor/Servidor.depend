@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1724296960 source:c:\users\homer\desktop\facu\2do cuatri\sistemas distribuidos\generadoraleatorioenc\servidor\main.cpp
+	<iostream>
+	<string>
+	<thread>
+	<vector>
+	<winsock2.h>
+	<ws2tcpip.h>
+
